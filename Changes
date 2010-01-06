@@ -1,0 +1,4 @@
+Revision history for Perl extension Plack::Middleware::Auth::Digest
+
+0.01    Thu Jan  7 05:08:19 2010
+        - original version
