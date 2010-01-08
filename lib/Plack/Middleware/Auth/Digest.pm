@@ -86,8 +86,8 @@ sub unauthorized {
     my $algorithm = 'MD5';
     my $qop       = 'auth';
 
-    my $challenge  = qq|Digest realm="$realm", nonce="$nonce", algorithm=$algorithm, qop="$qop"|;
-       $challenge .= qq(, stale="true") if $params{stale};
+    my $challenge  = qq|Digest realm="$realm", nonce="$nonce", algorithm=$algorithm, qop=$qop|;
+       $challenge .= qq(, stale=true) if $params{stale};
 
     return [
         401,
