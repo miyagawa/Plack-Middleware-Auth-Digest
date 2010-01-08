@@ -1,4 +1,8 @@
 Revision history for Perl extension Plack::Middleware::Auth::Digest
 
-0.01    Thu Jan  7 05:08:19 2010
+0.02  Fri Jan  8 02:29:40 PST 2010
+        - Fixed a bug in Digest challenge parser originated from LWP where it fails when the
+          realm contains a comma.
+
+0.01  Thu Jan  7 05:08:19 2010
         - original version

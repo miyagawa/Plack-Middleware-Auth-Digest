@@ -9,7 +9,7 @@ use MIME::Base64 ();
 use Digest::MD5 ();
 use Digest::HMAC_SHA1 ();
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 sub hash {
     Digest::MD5::md5_hex(join ":", @_);
