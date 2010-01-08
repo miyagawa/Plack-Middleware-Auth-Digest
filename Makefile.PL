@@ -12,7 +12,6 @@ tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t t/*/*/*/*/*.t';
 author_tests 'xt';
 auto_set_repository;
 build_requires 'Test::More', 0.88;
-use_test_base;
 auto_include;
 WriteAll;
 
