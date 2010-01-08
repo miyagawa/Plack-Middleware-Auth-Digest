@@ -3,10 +3,12 @@ package Plack::Middleware::Auth::Digest;
 use strict;
 use warnings;
 use parent qw/Plack::Middleware/;
-use Plack::Util::Accessor qw/realm authenticator password_hashed/;
-use HTTP::Headers::Util;
-use Digest::MD5;
-use String::Random qw/random_string/;
+use Plack::Util::Accessor qw/realm authenticator password_hashed secret nonce_ttl/;
+
+use HTTP::Headers::Util ();
+use MIME::Base64 ();
+use Digest::MD5 ();
+use Digest::HMAC_SHA1 ();
 
 our $VERSION = '0.01';
 
@@ -17,9 +19,12 @@ sub hash {
 sub prepare_app {
     my $self = shift;
 
-    my $auth = $self->authenticator or die 'authenticator is not set';
-    if (ref $auth ne 'CODE') {
-        die 'authenticator should be a code reference or an object that responds to authenticate()';
+    if ($self->authenticator && ref $self->authenticator ne 'CODE') {
+        die 'authenticator should be a code reference';
+    }
+
+    unless ($self->secret) {
+        die "Auth::Digest secret key is not set.";
     }
 }
 
@@ -32,13 +37,19 @@ sub call {
         my $auth = $self->parse_challenge($1) || {};
         $auth->{method} = $env->{REQUEST_METHOD};
 
-        ## TODO check if nonce is stale
-        ## TODO check if uri matches
-        ## TODO check qop
+        if ($auth->{uri} ne $env->{REQUEST_URI}) {
+            return [ 400, ['Content-Type', 'text/plain'], [ "Bad Request" ] ];
+        }
 
         my $password = $self->authenticator->($auth->{username});
         if (   defined $password
+            && $self->valid_nonce($auth)
             && $self->digest($password, $auth) eq $auth->{response}) {
+
+            if ($self->stale_nonce($auth)) {
+                return $self->unauthorized(stale => "true");
+            }
+
             $env->{REMOTE_USER} = $auth->{username};
             return $self->app->($env);
         }
@@ -67,21 +78,55 @@ sub digest {
 
 sub unauthorized {
     my $self = shift;
+    my %params = @_;
+
     my $body      = '401 Authorization required';
     my $realm     = $self->realm || "restricted area";
-    my $nonce     = random_string 's' x 52;
+    my $nonce     = $self->generate_nonce(time);
     my $algorithm = 'MD5';
     my $qop       = 'auth';
+
+    my $challenge  = qq|Digest realm="$realm", nonce="$nonce", algorithm=$algorithm, qop="$qop"|;
+       $challenge .= qq(, stale="true") if $params{stale};
 
     return [
         401,
         [
             'Content-Type'     => 'text/plain',
             'Content-Length'   => length $body,
-            'WWW-Authenticate' => qq|Digest realm="$realm", nonce="$nonce", algorithm=$algorithm, qop="$qop"|,
+            'WWW-Authenticate' => $challenge,
         ],
         [ $body ],
     ];
+}
+
+sub valid_nonce {
+    my($self, $auth) = @_;
+
+    my($time, $digest) = split / /, MIME::Base64::decode_base64($auth->{nonce});
+    $auth->{_nonce_time} = $time; # cache for stale check
+
+    return $time && $digest && $digest eq $self->hmac($time);
+}
+
+sub stale_nonce {
+    my($self, $auth) = @_;
+
+    $auth->{_nonce_time} < time - ($self->nonce_ttl || 60);
+}
+
+sub generate_nonce {
+    my($self, $time) = @_;
+
+    my $nonce = MIME::Base64::encode_base64(join " ", $time, $self->hmac($time));
+    chomp $nonce;
+
+    return $nonce;
+}
+
+sub hmac {
+    my($self, $time) = @_;
+    Digest::HMAC_SHA1::hmac_sha1_hex($time, $self->secret);
 }
 
 1;
@@ -93,13 +138,15 @@ Plack::Middleware::Auth::Digest - Digest authentication
 
 =head1 SYNOPSIS
 
-  enable "Auth::Digest", realm => "Secured", authenticator => sub {
-      my $username = shift;
-      return $password; # for $username
-  };
+  enable "Auth::Digest", realm => "Secured", secret => "blahblahblah",
+      authenticator => sub {
+          my $username = shift;
+          return $password; # for $username
+      };
 
   # Or return MD5 hash of "$username:$realm:$password"
-  enable "Auth::Digest", realm => "Secured", password_hashed => 1,
+  enable "Auth::Digest", realm => "Secured", secret => "blahblahblah",
+      password_hashed => 1,
       authenticator => sub { return $password_hashed };
 
 =head1 DESCRIPTION

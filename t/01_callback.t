@@ -15,7 +15,7 @@ my $realm    = 'restricted area';
 
 my $app = sub { return [ 200, [ 'Content-Type' => 'text/plain' ], [ "Hello $_[0]->{REMOTE_USER}" ] ] };
 $app = builder {
-    enable 'Auth::Digest', authenticator => sub { $passwords{$_[0]} };
+    enable 'Auth::Digest', authenticator => sub { $passwords{$_[0]} }, secret => "foo";
     $app;
 };
 
