@@ -5,7 +5,6 @@ use warnings;
 use parent qw/Plack::Middleware/;
 use Plack::Util::Accessor qw/realm authenticator password_hashed secret nonce_ttl/;
 
-use HTTP::Headers::Util ();
 use MIME::Base64 ();
 use Digest::MD5 ();
 use Digest::HMAC_SHA1 ();
@@ -61,10 +60,19 @@ sub call {
 sub parse_challenge {
     my($self, $header) = @_;
 
-    $header =~ tr/,/;/; # from LWP::UserAgent
-    my($challenge) = HTTP::Headers::Util::split_header_words($header);
+    my $auth;
+    while ($header =~ /(\w+)\=("[^\"]+"|[^,]+)/g ) {
+        $auth->{$1} = dequote($2);
+    }
 
-    return { @$challenge };
+    return $auth;
+}
+
+sub dequote {
+    my $s = shift;
+    $s =~ s/^"(.*)"$/$1/;
+    $s =~ s/\\(.)/$1/g;
+    $s;
 }
 
 sub digest {

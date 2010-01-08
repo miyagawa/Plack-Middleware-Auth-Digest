@@ -6,7 +6,6 @@ readme_from "lib/Plack/Middleware/Auth/Digest.pm";
 requires 'Plack';
 requires 'Digest::MD5';
 requires 'Digest::HMAC_SHA1';
-requires 'HTTP::Headers';
 
 tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t t/*/*/*/*/*.t';
 author_tests 'xt';
