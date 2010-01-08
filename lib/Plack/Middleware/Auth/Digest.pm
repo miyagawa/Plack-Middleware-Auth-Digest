@@ -1,5 +1,5 @@
 package Plack::Middleware::Auth::Digest;
-
+use 5.008001;
 use strict;
 use warnings;
 use parent qw/Plack::Middleware/;
@@ -155,6 +155,36 @@ Plack::Middleware::Auth::Digest is a Plack middleware component that
 enables Digest authentication. Your C<authenticator> callback is given
 an username as a string and should return a password, either as a raw
 password or a hashed password.
+
+=head1 CONFIGURATIONS
+
+=over 4
+
+=item authenticator
+
+A callback that takes an username and returns a password for the user,
+either in a plaintext password or a MD5 hash of
+"username:realm:password" (quotes not included) when
+C<password_hashed> option is enabled.
+
+=item password_hashed
+
+A boolean (0 or 1) to indicate whether C<authenticator> callback
+returns passwords in a plaintext or hashed. Defaults to 0 (plaintext).
+
+=item realm
+
+A string to represent the realm. Defaults to I<restricted area>.
+
+=item secret
+
+Server secret text string that is used to sign nonce. Required.
+
+=item nonce_ttl
+
+Time-to-live seconds to prevent replay attacks. Defaults to 60.
+
+=back
 
 =head1 AUTHOR
 

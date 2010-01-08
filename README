@@ -1,27 +1,54 @@
-This is Perl module Plack::Middleware::Auth::Digest.
+NAME
+    Plack::Middleware::Auth::Digest - Digest authentication
 
-INSTALLATION
+SYNOPSIS
+      enable "Auth::Digest", realm => "Secured", secret => "blahblahblah",
+          authenticator => sub {
+              my $username = shift;
+              return $password; # for $username
+          };
 
-Plack::Middleware::Auth::Digest installation is straightforward. If your CPAN shell is set up,
-you should just be able to do
+      # Or return MD5 hash of "$username:$realm:$password"
+      enable "Auth::Digest", realm => "Secured", secret => "blahblahblah",
+          password_hashed => 1,
+          authenticator => sub { return $password_hashed };
 
-    % cpan Plack::Middleware::Auth::Digest
+DESCRIPTION
+    Plack::Middleware::Auth::Digest is a Plack middleware component that
+    enables Digest authentication. Your "authenticator" callback is given an
+    username as a string and should return a password, either as a raw
+    password or a hashed password.
 
-Download it, unpack it, then build it as per the usual:
+CONFIGURATIONS
+    authenticator
+        A callback that takes an username and returns a password for the
+        user, either in a plaintext password or a MD5 hash of
+        "username:realm:password" (quotes not included) when
+        "password_hashed" option is enabled.
 
-    % perl Makefile.PL
-    % make && make test
+    password_hashed
+        A boolean (0 or 1) to indicate whether "authenticator" callback
+        returns passwords in a plaintext or hashed. Defaults to 0
+        (plaintext).
 
-Then install it:
+    realm
+        A string to represent the realm. Defaults to *restricted area*.
 
-    % make install
+    secret
+        Server secret text string that is used to sign nonce. Required.
 
-DOCUMENTATION
+    nonce_ttl
+        Time-to-live seconds to prevent replay attacks. Defaults to 60.
 
-Plack::Middleware::Auth::Digest documentation is available as in POD. So you can do:
+AUTHOR
+    Yuji Shimada <xaicron@cpan.org>
 
-    % perldoc Plack::Middleware::Auth::Digest
+    Tatsuhiko Miyagawa
 
-to read the documentation online with your favorite pager.
+SEE ALSO
+    Plack::Middleware::Auth::Basic
 
-Yuji Shimada
+LICENSE
+    This library is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself.
+
