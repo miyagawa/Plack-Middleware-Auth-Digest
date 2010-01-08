@@ -11,11 +11,11 @@ my $username = 'admin';
 my $password = 's3cr3t';
 my %passwords = ($username => $password);
 
-my $realm    = 'restricted, area';
+my $realm    = 'restricted area';
 
 my $app = sub { return [ 200, [ 'Content-Type' => 'text/plain' ], [ "Hello $_[0]->{REMOTE_USER}" ] ] };
 $app = builder {
-    enable 'Auth::Digest', realm => $realm, authenticator => sub { $passwords{$_[0]} }, secret => "foo";
+    enable 'Auth::Digest', authenticator => sub { $passwords{$_[0]} }, secret => "foo";
     $app;
 };
 
@@ -30,7 +30,6 @@ test_psgi ua => $ua, app => $app, client => sub {
     my $req = GET "http://localhost/";
     $ua->add_handler(request_prepare => sub {
         my($req, $ua, $h) = @_;
-        $realm =~ tr/,/;/; # LWP bug
         $ua->credentials($req->uri->host_port, $realm, $username, $password);
     });
 
