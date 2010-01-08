@@ -3,8 +3,8 @@ name 'Plack-Middleware-Auth-Digest';
 all_from 'lib/Plack/Middleware/Auth/Digest.pm';
 
 requires 'Plack';
-requires 'Text::CSV';
 requires 'Digest::MD5';
+requires 'HTTP::Headers';
 requires 'String::Random';
 
 tests 't/*.t t/*/*.t t/*/*/*.t t/*/*/*/*.t t/*/*/*/*/*.t';

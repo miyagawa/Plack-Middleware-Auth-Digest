@@ -1,35 +1,38 @@
+use strict;
 use Test::More;
 use Plack::Test;
 use Plack::Builder;
 use HTTP::Request::Common;
-use t::Client;
-use t::CallBack;
+use LWP::UserAgent;
+
+$Plack::Test::Impl = "Server"; # to use LWP::Authen::Digest
 
 my $username = 'admin';
 my $password = 's3cr3t';
+my %passwords = ($username => $password);
 
-my $cb = t::CallBack->new(realm => 'restricted area');
-$cb->add_user(username => $username, password => $password);
+my $realm    = 'restricted area';
 
 my $app = sub { return [ 200, [ 'Content-Type' => 'text/plain' ], [ "Hello $_[0]->{REMOTE_USER}" ] ] };
 $app = builder {
-    enable 'Auth::Digest', authenticator => $cb->callback;
+    enable 'Auth::Digest', authenticator => sub { $passwords{$_[0]} };
     $app;
 };
 
-test_psgi app => $app, client => sub {
+my $ua = LWP::UserAgent->new;
+
+test_psgi ua => $ua, app => $app, client => sub {
     my $cb = shift;
-    
-    my $res = $cb->(GET 'http://localhost');
+
+    my $res = $cb->(GET '/');
     is $res->code, 401;
-    
-    my $req = make_auth_digest_response +{
-        response => $res,
-        uri      => 'http://localhost',
-        username => $username,
-        password => $password,
-    };
-    
+
+    my $req = GET "http://localhost/";
+    $ua->add_handler(request_prepare => sub {
+        my($req, $ua, $h) = @_;
+        $ua->credentials($req->uri->host_port, $realm, $username, $password);
+    });
+
     $res = $cb->($req);
     is $res->code, 200;
     is $res->content, "Hello admin"
