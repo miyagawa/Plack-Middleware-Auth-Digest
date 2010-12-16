@@ -40,7 +40,7 @@ sub call {
             return [ 400, ['Content-Type', 'text/plain'], [ "Bad Request" ] ];
         }
 
-        my $password = $self->authenticator->($auth->{username});
+        my $password = $self->authenticator->($auth->{username}, $env);
         if (   defined $password
             && $self->valid_nonce($auth)
             && $self->digest($password, $auth) eq $auth->{response}) {
