@@ -38,4 +38,29 @@ test_psgi ua => $ua, app => $app, client => sub {
     is $res->content, "Hello admin"
 };
 
+my $app_env = sub { return [ 200, [ 'Content-Type' => 'text/plain' ], [ "Hello $_[0]->{REMOTE_USER} $_[0]->{envtest}" ] ] };
+$app_env = builder {
+    enable 'Auth::Digest', authenticator => sub { $_[1]->{envtest} = "foobar"; $passwords{$_[0]} }, secret => "foo";
+    $app_env;
+};
+
+$ua = LWP::UserAgent->new;
+
+test_psgi ua => $ua, app => $app_env, client => sub {
+    my $cb = shift;
+
+    my $res = $cb->(GET '/');
+    is $res->code, 401;
+
+    my $req = GET "http://localhost/";
+    $ua->add_handler(request_prepare => sub {
+        my($req, $ua, $h) = @_;
+        $ua->credentials($req->uri->host_port, $realm, $username, $password);
+    });
+
+    $res = $cb->($req);
+    is $res->code, 200;
+    is $res->content, "Hello admin foobar"
+};
+
 done_testing;
