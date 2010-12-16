@@ -148,7 +148,7 @@ Plack::Middleware::Auth::Digest - Digest authentication
 
   enable "Auth::Digest", realm => "Secured", secret => "blahblahblah",
       authenticator => sub {
-          my $username = shift;
+          my ($username, $env) = @_;
           return $password; # for $username
       };
 
@@ -160,9 +160,9 @@ Plack::Middleware::Auth::Digest - Digest authentication
 =head1 DESCRIPTION
 
 Plack::Middleware::Auth::Digest is a Plack middleware component that
-enables Digest authentication. Your C<authenticator> callback is given
-an username as a string and should return a password, either as a raw
-password or a hashed password.
+enables Digest authentication. Your C<authenticator> callback is called using
+two parameters: a username as a string and the PSGI C<$env> hash. Your callback
+should return a password, either as a raw password or a hashed password.
 
 =head1 CONFIGURATIONS
 
@@ -170,8 +170,8 @@ password or a hashed password.
 
 =item authenticator
 
-A callback that takes an username and returns a password for the user,
-either in a plaintext password or a MD5 hash of
+A callback that takes a username and PSGI C<$env> hash and returns a password
+for the user, either in a plaintext password or a MD5 hash of
 "username:realm:password" (quotes not included) when
 C<password_hashed> option is enabled.
 
