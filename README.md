@@ -75,6 +75,10 @@ Yuji Shimada <xaicron@cpan.org>
 
 Tatsuhiko Miyagawa
 
+# COPYRIGHT
+
+Yuji Shimada, Tatsuhiko Miyagawa 2010-
+
 # SEE ALSO
 
 [Plack::Middleware::Auth::Basic](https://metacpan.org/pod/Plack::Middleware::Auth::Basic)

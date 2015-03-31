@@ -2,6 +2,10 @@ Revision history for Perl extension Plack::Middleware::Auth::Digest
 
 {{$NEXT}}
 
+0.05  2015-03-31 16:13:22 PDT
+        - fixed test dependency
+        - switched to Milla
+
 0.04  Thu Dec 16 11:27:29 PST 2010
         - Passed $env to the callback as a second argument (blaze-x)
         - Adde a documentation on using it with Apache environment
