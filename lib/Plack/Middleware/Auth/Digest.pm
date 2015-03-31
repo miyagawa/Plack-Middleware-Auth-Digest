@@ -221,7 +221,7 @@ Yuji Shimada E<lt>xaicron@cpan.orgE<gt>
 
 Tatsuhiko Miyagawa
 
-=head COPYRIGHT
+=head1 COPYRIGHT
 
 Yuji Shimada, Tatsuhiko Miyagawa 2010-
 
