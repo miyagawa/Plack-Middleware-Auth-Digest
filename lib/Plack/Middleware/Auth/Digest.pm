@@ -221,6 +221,10 @@ Yuji Shimada E<lt>xaicron@cpan.orgE<gt>
 
 Tatsuhiko Miyagawa
 
+=head COPYRIGHT
+
+Yuji Shimada, Tatsuhiko Miyagawa 2010-
+
 =head1 SEE ALSO
 
 L<Plack::Middleware::Auth::Basic>
