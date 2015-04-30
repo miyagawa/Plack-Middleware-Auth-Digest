@@ -36,7 +36,12 @@ sub call {
         my $auth = $self->parse_challenge($1) || {};
         $auth->{method} = $env->{REQUEST_METHOD};
 
-        if ($auth->{uri} ne $env->{REQUEST_URI}) {
+        my $checkUrl = $env->{REQUEST_URI};
+        if($env->{HTTP_X_FORWARDED_SCRIPT_NAME}){
+            $checkUrl = $env->{HTTP_X_FORWARDED_SCRIPT_NAME} . $env->{REQUEST_URI};
+        }
+
+        if ($auth->{uri} ne $checkUrl) {
             return [ 400, ['Content-Type', 'text/plain'], [ "Bad Request" ] ];
         }
 
